@@ -17,7 +17,6 @@ UWORD Imagesize = 0;
 
 void setup()
 {
-  printf("EPD_7IN5B_V2_test Demo\r\n");
   DEV_Module_Init();
 
   initializeDisplay();
@@ -96,7 +95,6 @@ void drawShapes()
   Paint_DrawRectangle(20, 70, 70, 120, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
   Paint_DrawRectangle(80, 70, 130, 120, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
   Paint_DrawString_EN(10, 0, "waveshare", &Font16, BLACK, WHITE);
-  Paint_DrawString_CN(130, 20, "微雪电子", &Font24CN, WHITE, BLACK);
   Paint_DrawNum(10, 50, 987654321, &Font16, WHITE, BLACK);
 
   // Draw red layer
@@ -106,7 +104,6 @@ void drawShapes()
   Paint_DrawCircle(210, 95, 20, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
   Paint_DrawLine(85, 95, 125, 95, BLACK, DOT_PIXEL_1X1, LINE_STYLE_DOTTED);
   Paint_DrawLine(105, 75, 105, 115, BLACK, DOT_PIXEL_1X1, LINE_STYLE_DOTTED);
-  Paint_DrawString_CN(130, 0, "你好abc", &Font12CN, BLACK, WHITE);
   Paint_DrawString_EN(10, 20, "hello world", &Font12, WHITE, BLACK);
   Paint_DrawNum(10, 33, 123456789, &Font12, BLACK, WHITE);
 

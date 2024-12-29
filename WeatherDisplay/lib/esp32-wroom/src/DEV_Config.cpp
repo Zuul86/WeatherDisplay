@@ -31,16 +31,22 @@
 
 void GPIO_Config(void)
 {
-    pinMode(EPD_BUSY_PIN,  INPUT);
-    pinMode(EPD_RST_PIN , OUTPUT);
-    pinMode(EPD_DC_PIN  , OUTPUT);
-    
-    pinMode(EPD_SCK_PIN, OUTPUT);
-    pinMode(EPD_MOSI_PIN, OUTPUT);
-    pinMode(EPD_CS_PIN , OUTPUT);
+    try {
+        pinMode(EPD_BUSY_PIN,  INPUT);
+        pinMode(EPD_RST_PIN , OUTPUT);
+        pinMode(EPD_DC_PIN  , OUTPUT);
+        
+        pinMode(EPD_SCK_PIN, OUTPUT);
+        pinMode(EPD_MOSI_PIN, OUTPUT);
+        pinMode(EPD_CS_PIN , OUTPUT);
 
-    digitalWrite(EPD_CS_PIN , HIGH);
-    digitalWrite(EPD_SCK_PIN, LOW);
+        digitalWrite(EPD_CS_PIN , HIGH);
+        digitalWrite(EPD_SCK_PIN, LOW);
+    } catch (const std::exception& e) {
+        Serial.println("Error in GPIO_Config: " + String(e.what()));
+    } catch (...) {
+        Serial.println("Unknown error occurred in GPIO_Config");
+    }
 }
 
 void GPIO_Mode(UWORD GPIO_Pin, UWORD Mode)
@@ -58,18 +64,8 @@ Info:
 ******************************************************************************/
 UBYTE DEV_Module_Init(void)
 {
-	//gpio
 	GPIO_Config();
-
-	//serial printf
 	Serial.begin(115200);
-
-	// spi
-	// SPI.setDataMode(SPI_MODE0);
-	// SPI.setBitOrder(MSBFIRST);
-	// SPI.setClockDivider(SPI_CLOCK_DIV4);
-	// SPI.begin();
-
 	return 0;
 }
 
