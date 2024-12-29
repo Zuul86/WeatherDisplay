@@ -504,7 +504,50 @@ void Paint_DrawCircle(UWORD X_Center, UWORD Y_Center, UWORD Radius,
         }
     }
 }
+/******************************************************************************
+function: Draw a solid five-pointed star
+parameter:
+    X_Center  : Center X coordinate
+    Y_Center  : Center Y coordinate
+    Size      : Star size (radius from center to outer point)
+    Color     : Star color
+******************************************************************************/
+void Paint_DrawStar(UWORD X_Center, UWORD Y_Center, UWORD Size, UWORD Color)
+{
+    if (X_Center > Paint.Width || Y_Center >= Paint.Height) {
+        Debug("Paint_DrawStar Input exceeds the normal display range\r\n");
+        return;
+    }
 
+    // Calculate the 5 outer points of the star
+    UWORD points_x[5], points_y[5];
+    for(int i = 0; i < 5; i++) {
+        float angle = i * 72 - 90; // Start at -90 degrees, increment by 72
+        float rad = angle * M_PI / 180;
+        points_x[i] = X_Center + Size * cos(rad);
+        points_y[i] = Y_Center + Size * sin(rad);
+    }
+
+    // Calculate inner points of the star
+    UWORD inner_x[5], inner_y[5];
+    float inner_size = Size * 0.382; // Golden ratio for classic star shape
+    for(int i = 0; i < 5; i++) {
+        float angle = (i * 72 + 36) - 90; // Offset by 36 degrees
+        float rad = angle * M_PI / 180;
+        inner_x[i] = X_Center + inner_size * cos(rad);
+        inner_y[i] = Y_Center + inner_size * sin(rad);
+    }
+
+    // Draw the filled star by drawing triangles
+    for(int i = 0; i < 5; i++) {
+        int next = (i + 1) % 5;
+        // Draw triangle between outer points and center
+        Paint_DrawLine(points_x[i], points_y[i], points_x[next], points_y[next], Color, DOT_PIXEL_1X1, LINE_STYLE_SOLID);
+        Paint_DrawLine(points_x[i], points_y[i], inner_x[i], inner_y[i], Color, DOT_PIXEL_1X1, LINE_STYLE_SOLID);
+        Paint_DrawLine(points_x[next], points_y[next], inner_x[i], inner_y[i], Color, DOT_PIXEL_1X1, LINE_STYLE_SOLID);
+        Paint_DrawLine(X_Center, Y_Center, inner_x[i], inner_y[i], Color, DOT_PIXEL_1X1, LINE_STYLE_SOLID);
+    }
+}
 /******************************************************************************
 function: Show English characters
 parameter:

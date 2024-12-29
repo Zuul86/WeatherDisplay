@@ -102,6 +102,7 @@ void drawShapes()
   Paint_Clear(WHITE);
   Paint_DrawCircle(160, 95, 20, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
   Paint_DrawCircle(210, 95, 20, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+  Paint_DrawStar(160, 95, 20, BLACK);
   Paint_DrawLine(85, 95, 125, 95, BLACK, DOT_PIXEL_1X1, LINE_STYLE_DOTTED);
   Paint_DrawLine(105, 75, 105, 115, BLACK, DOT_PIXEL_1X1, LINE_STYLE_DOTTED);
   Paint_DrawString_EN(10, 20, "hello world", &Font12, WHITE, BLACK);
