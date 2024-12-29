@@ -1,54 +1,90 @@
-/* Includes ------------------------------------------------------------------*/
 #include "DEV_Config.h"
 #include "EPD.h"
 #include "GUI_Paint.h"
 #include "imagedata.h"
 #include <stdlib.h>
 
-/* Entry point ----------------------------------------------------------------*/
+// Private method declarations
+void initializeDisplay();
+void createImageBuffers();
+void showImageFromArray();
+void drawShapes();
+void demonstratePartialRefresh();
+void cleanupDisplay();
+
+UBYTE *BlackImage = NULL, *RYImage = NULL;
+UWORD Imagesize = 0;
+
 void setup()
 {
   printf("EPD_7IN5B_V2_test Demo\r\n");
   DEV_Module_Init();
 
+  initializeDisplay();
+  createImageBuffers();
+
+#if 1
+  showImageFromArray();
+#endif
+
+#if 1
+  drawShapes();
+#endif
+
+#if 1
+  demonstratePartialRefresh();
+#endif
+
+  cleanupDisplay();
+}
+
+void initializeDisplay()
+{
   printf("e-Paper Init and Clear...\r\n");
   EPD_7IN5B_V2_Init();
   EPD_7IN5B_V2_Clear();
   DEV_Delay_ms(500);
+}
 
-
-  //Create a new image cache named IMAGE_BW and fill it with white
-  UBYTE *BlackImage, *RYImage;
-  UWORD Imagesize = ((EPD_7IN5B_V2_WIDTH % 8 == 0) ? (EPD_7IN5B_V2_WIDTH / 8 ) : (EPD_7IN5B_V2_WIDTH / 8 + 1)) * EPD_7IN5B_V2_HEIGHT;
-  if ((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) {
+void createImageBuffers()
+{
+  Imagesize = ((EPD_7IN5B_V2_WIDTH % 8 == 0) ? (EPD_7IN5B_V2_WIDTH / 8) : (EPD_7IN5B_V2_WIDTH / 8 + 1)) * EPD_7IN5B_V2_HEIGHT;
+  if ((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL)
+  {
     printf("Failed to apply for black memory...\r\n");
-    while(1);
+    while (1)
+      ;
   }
-  if ((RYImage = (UBYTE *)malloc(Imagesize)) == NULL) {
+  if ((RYImage = (UBYTE *)malloc(Imagesize)) == NULL)
+  {
     printf("Failed to apply for red memory...\r\n");
-    while(1);
+    while (1)
+      ;
   }
-  printf("NewImage:BlackImage and RYImage\r\n");
-  Paint_NewImage(BlackImage, EPD_7IN5B_V2_WIDTH, EPD_7IN5B_V2_HEIGHT , 0, WHITE);
-  Paint_NewImage(RYImage, EPD_7IN5B_V2_WIDTH, EPD_7IN5B_V2_HEIGHT , 0, WHITE);
 
-  //Select Image
+  printf("NewImage:BlackImage and RYImage\r\n");
+  Paint_NewImage(BlackImage, EPD_7IN5B_V2_WIDTH, EPD_7IN5B_V2_HEIGHT, 0, WHITE);
+  Paint_NewImage(RYImage, EPD_7IN5B_V2_WIDTH, EPD_7IN5B_V2_HEIGHT, 0, WHITE);
+
   Paint_SelectImage(BlackImage);
   Paint_Clear(WHITE);
   Paint_SelectImage(RYImage);
   Paint_Clear(WHITE);
+}
 
-#if 1   // show image for array    
+void showImageFromArray()
+{
   printf("show image for array\r\n");
   EPD_7IN5B_V2_Init_Fast();
   EPD_7IN5B_V2_Display(gImage_7in5_V2_b, gImage_7in5_V2_ry);
   DEV_Delay_ms(2000);
-#endif
+}
 
-#if 1   // Drawing on the image
-  /*Horizontal screen*/
-  //1.Draw black image
+void drawShapes()
+{
   EPD_7IN5B_V2_Init();
+
+  // Draw black layer
   Paint_SelectImage(BlackImage);
   Paint_Clear(WHITE);
   Paint_DrawPoint(10, 80, BLACK, DOT_PIXEL_1X1, DOT_STYLE_DFT);
@@ -63,7 +99,7 @@ void setup()
   Paint_DrawString_CN(130, 20, "微雪电子", &Font24CN, WHITE, BLACK);
   Paint_DrawNum(10, 50, 987654321, &Font16, WHITE, BLACK);
 
-  //2.Draw red image
+  // Draw red layer
   Paint_SelectImage(RYImage);
   Paint_Clear(WHITE);
   Paint_DrawCircle(160, 95, 20, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
@@ -77,48 +113,46 @@ void setup()
   printf("EPD_Display\r\n");
   EPD_7IN5B_V2_Display(BlackImage, RYImage);
   DEV_Delay_ms(2000);
-#endif
+}
 
-#if 1   //Partial refresh, example shows time
-    EPD_7IN5B_V2_Init_Part();
-    EPD_7IN5B_V2_Display_Base_color(WHITE);
-	Paint_NewImage(BlackImage, Font20.Width * 7, Font20.Height, 0, WHITE);
-    Debug("Partial refresh\r\n");
-    Paint_SelectImage(BlackImage);
-    Paint_Clear(WHITE);
-	
-    PAINT_TIME sPaint_time;
-    sPaint_time.Hour = 12;
-    sPaint_time.Min = 34;
-    sPaint_time.Sec = 56;
-    UBYTE num = 10;
-    for (;;) {
-        sPaint_time.Sec = sPaint_time.Sec + 1;
-        if (sPaint_time.Sec == 60) {
-            sPaint_time.Min = sPaint_time.Min + 1;
-            sPaint_time.Sec = 0;
-            if (sPaint_time.Min == 60) {
-                sPaint_time.Hour =  sPaint_time.Hour + 1;
-                sPaint_time.Min = 0;
-                if (sPaint_time.Hour == 24) {
-                    sPaint_time.Hour = 0;
-                    sPaint_time.Min = 0;
-                    sPaint_time.Sec = 0;
-                }
-            }
-        }
-        Paint_ClearWindows(0, 0, Font20.Width * 7, Font20.Height, WHITE);
-        Paint_DrawTime(0, 0, &sPaint_time, &Font20, WHITE, BLACK);
+void demonstratePartialRefresh()
+{
+  EPD_7IN5B_V2_Init_Part();
+  EPD_7IN5B_V2_Display_Base_color(WHITE);
+  Paint_NewImage(BlackImage, Font20.Width * 7, Font20.Height, 0, WHITE);
+  Debug("Partial refresh\r\n");
+  Paint_SelectImage(BlackImage);
+  Paint_Clear(WHITE);
 
-        num = num - 1;
-        if(num == 0) {
-            break;
+  PAINT_TIME sPaint_time = {12, 34, 56};
+  for (UBYTE num = 10; num > 0; num--)
+  {
+    sPaint_time.Sec = sPaint_time.Sec + 1;
+    if (sPaint_time.Sec == 60)
+    {
+      sPaint_time.Min = sPaint_time.Min + 1;
+      sPaint_time.Sec = 0;
+      if (sPaint_time.Min == 60)
+      {
+        sPaint_time.Hour = sPaint_time.Hour + 1;
+        sPaint_time.Min = 0;
+        if (sPaint_time.Hour == 24)
+        {
+          sPaint_time.Hour = 0;
+          sPaint_time.Min = 0;
+          sPaint_time.Sec = 0;
         }
-		EPD_7IN5B_V2_Display_Partial(BlackImage, 10, 130, 10 + Font20.Width * 7, 130 + Font20.Height);
-        DEV_Delay_ms(500);//Analog clock 1s
+      }
     }
-#endif
+    Paint_ClearWindows(0, 0, Font20.Width * 7, Font20.Height, WHITE);
+    Paint_DrawTime(0, 0, &sPaint_time, &Font20, WHITE, BLACK);
+    EPD_7IN5B_V2_Display_Partial(BlackImage, 10, 130, 10 + Font20.Width * 7, 130 + Font20.Height);
+    DEV_Delay_ms(500);
+  }
+}
 
+void cleanupDisplay()
+{
   printf("Clear...\r\n");
   EPD_7IN5B_V2_Init();
   EPD_7IN5B_V2_Clear();
@@ -129,7 +163,6 @@ void setup()
   free(RYImage);
   BlackImage = NULL;
   RYImage = NULL;
-
 }
 
 /* The main loop -------------------------------------------------------------*/
