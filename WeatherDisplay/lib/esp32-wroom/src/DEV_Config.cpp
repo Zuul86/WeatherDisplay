@@ -31,22 +31,16 @@
 
 void GPIO_Config(void)
 {
-    try {
-        pinMode(EPD_BUSY_PIN,  INPUT);
-        pinMode(EPD_RST_PIN , OUTPUT);
-        pinMode(EPD_DC_PIN  , OUTPUT);
-        
-        pinMode(EPD_SCK_PIN, OUTPUT);
-        pinMode(EPD_MOSI_PIN, OUTPUT);
-        pinMode(EPD_CS_PIN , OUTPUT);
+    pinMode(EPD_BUSY_PIN,  INPUT);
+    pinMode(EPD_RST_PIN , OUTPUT);
+    pinMode(EPD_DC_PIN  , OUTPUT);
+    
+    pinMode(EPD_SCK_PIN, OUTPUT);
+    pinMode(EPD_MOSI_PIN, OUTPUT);
+    pinMode(EPD_CS_PIN , OUTPUT);
 
-        digitalWrite(EPD_CS_PIN , HIGH);
-        digitalWrite(EPD_SCK_PIN, LOW);
-    } catch (const std::exception& e) {
-        Serial.println("Error in GPIO_Config: " + String(e.what()));
-    } catch (...) {
-        Serial.println("Unknown error occurred in GPIO_Config");
-    }
+    digitalWrite(EPD_CS_PIN , HIGH);
+    digitalWrite(EPD_SCK_PIN, LOW);
 }
 
 void GPIO_Mode(UWORD GPIO_Pin, UWORD Mode)
