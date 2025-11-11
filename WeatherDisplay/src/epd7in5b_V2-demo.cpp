@@ -12,6 +12,7 @@ void showImageFromArray();
 void weatherDisplayDemo();
 void drawShapes();
 void demonstratePartialRefresh();
+void drawBorders();
 void cleanupDisplay();
 
 UBYTE *BlackImage = NULL, *RYImage = NULL;
@@ -45,26 +46,31 @@ void setup()
 
 void weatherDisplayDemo()
 {
-  const int margin = 20;
-  const int split_point = EPD_7IN5B_V2_WIDTH / 4;
-
   EPD_7IN5B_V2_Init();
 
-  // Draw the left (black) rectangle
-  Paint_SelectImage(BlackImage);
-  Paint_Clear(WHITE);
-  Paint_DrawRectangle(margin, margin, split_point, EPD_7IN5B_V2_HEIGHT - margin,
-                      BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-
-  // Draw the right (red) rectangle
-  Paint_SelectImage(RYImage);
-  Paint_Clear(WHITE);
-  Paint_DrawRectangle(split_point + margin, margin, EPD_7IN5B_V2_WIDTH - margin, EPD_7IN5B_V2_HEIGHT - margin,
-                      RED, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
+  drawBorders();
 
   printf("EPD_Display\r\n");
   EPD_7IN5B_V2_Display(BlackImage, RYImage);
   DEV_Delay_ms(2000);
+}
+
+void drawBorders()
+{
+  const int margin = 20;
+  const int split_point = EPD_7IN5B_V2_WIDTH / 4;
+
+  // Draw both rectangles on the black layer
+  Paint_SelectImage(BlackImage);
+  Paint_Clear(WHITE);
+  Paint_DrawRectangle(margin, margin, split_point, EPD_7IN5B_V2_HEIGHT - margin,
+                      BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
+  Paint_DrawRectangle(split_point + margin, margin, EPD_7IN5B_V2_WIDTH - margin, EPD_7IN5B_V2_HEIGHT - margin,
+                      BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
+
+  // Clear the red layer to ensure no red is displayed
+  Paint_SelectImage(RYImage);
+  Paint_Clear(WHITE);
 }
 
 
