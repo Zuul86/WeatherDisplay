@@ -77,17 +77,12 @@ parameter:
 void EPD_7IN5B_V2_WaitUntilIdle(void)
 {
     Debug("e-Paper busy\r\n");
-    unsigned char busy;
-	do	{
-		EPD_7IN5B_V2_SendCommand(0x71);
-		busy = DEV_Digital_Read(EPD_BUSY_PIN);
-		busy =!(busy & 0x01);        
-	}while(busy);
-	DEV_Delay_ms(200);      
-		
-		
-		Debug("e-Paper busy release\r\n");
-		
+    do {
+        EPD_7IN5B_V2_SendCommand(0x71); // Get status
+        DEV_Delay_ms(50);
+    }
+    while(DEV_Digital_Read(EPD_BUSY_PIN) == 0); // 0: busy, 1: idle
+    Debug("e-Paper busy release\r\n");
 }
 
 

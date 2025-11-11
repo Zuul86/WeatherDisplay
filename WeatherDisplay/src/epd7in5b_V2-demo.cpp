@@ -9,6 +9,7 @@
 void initializeDisplay();
 void createImageBuffers();
 void showImageFromArray();
+void weatherDisplayDemo();
 void drawShapes();
 void demonstratePartialRefresh();
 void cleanupDisplay();
@@ -24,19 +25,48 @@ void setup()
   createImageBuffers();
 
 #if 1
-  showImageFromArray();
+  //showImageFromArray();
 #endif
 
 #if 1
-  drawShapes();
+  //drawShapes();
 #endif
 
 #if 1
-  demonstratePartialRefresh();
+  weatherDisplayDemo();
 #endif
 
-  cleanupDisplay();
+#if 1
+  //demonstratePartialRefresh();
+#endif
+
+  //cleanupDisplay();
 }
+
+void weatherDisplayDemo()
+{
+  const int margin = 20;
+  const int split_point = EPD_7IN5B_V2_WIDTH / 4;
+
+  EPD_7IN5B_V2_Init();
+
+  // Draw the left (black) rectangle
+  Paint_SelectImage(BlackImage);
+  Paint_Clear(WHITE);
+  Paint_DrawRectangle(margin, margin, split_point, EPD_7IN5B_V2_HEIGHT - margin,
+                      BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
+
+  // Draw the right (red) rectangle
+  Paint_SelectImage(RYImage);
+  Paint_Clear(WHITE);
+  Paint_DrawRectangle(split_point + margin, margin, EPD_7IN5B_V2_WIDTH - margin, EPD_7IN5B_V2_HEIGHT - margin,
+                      RED, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
+
+  printf("EPD_Display\r\n");
+  EPD_7IN5B_V2_Display(BlackImage, RYImage);
+  DEV_Delay_ms(2000);
+}
+
 
 void initializeDisplay()
 {
