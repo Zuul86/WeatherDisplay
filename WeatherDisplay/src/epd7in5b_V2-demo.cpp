@@ -10,9 +10,12 @@ void initializeDisplay();
 void createImageBuffers();
 void showImageFromArray();
 void weatherDisplayDemo();
+
+void drawCurrentConditions(int margin);
 void drawShapes();
+void drawLocalHeader(int margin);
 void demonstratePartialRefresh();
-void drawBorders();
+void drawBorders(int margin);
 void cleanupDisplay();
 
 UBYTE *BlackImage = NULL, *RYImage = NULL;
@@ -46,31 +49,41 @@ void setup()
 
 void weatherDisplayDemo()
 {
+  const int margin = 20;
   EPD_7IN5B_V2_Init();
 
-  drawBorders();
+  Paint_Clear(WHITE);
+
+  drawBorders(margin);
+  drawLocalHeader(margin);
+  drawCurrentConditions(margin);
 
   printf("EPD_Display\r\n");
   EPD_7IN5B_V2_Display(BlackImage, RYImage);
   DEV_Delay_ms(2000);
 }
 
-void drawBorders()
+void drawLocalHeader(int margin)
 {
-  const int margin = 20;
+  const int header_height = 50;
+
+  // Draw header on black layer
+  Paint_SelectImage(BlackImage);
+  Paint_DrawString_EN(10 + margin, 10 + margin, "Local Weather", &Font16, WHITE, BLACK);
+}
+
+void drawBorders(int margin)
+{
   const int split_point = EPD_7IN5B_V2_WIDTH / 4;
 
   // Draw both rectangles on the black layer
   Paint_SelectImage(BlackImage);
-  Paint_Clear(WHITE);
+  
   Paint_DrawRectangle(margin, margin, split_point, EPD_7IN5B_V2_HEIGHT - margin,
                       BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
   Paint_DrawRectangle(split_point + margin, margin, EPD_7IN5B_V2_WIDTH - margin, EPD_7IN5B_V2_HEIGHT - margin,
                       BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
 
-  // Clear the red layer to ensure no red is displayed
-  Paint_SelectImage(RYImage);
-  Paint_Clear(WHITE);
 }
 
 
@@ -198,6 +211,15 @@ void cleanupDisplay()
   free(RYImage);
   BlackImage = NULL;
   RYImage = NULL;
+}
+
+void drawCurrentConditions(int margin)
+{
+  // Draw current conditions on black layer
+  Paint_SelectImage(BlackImage);
+  Paint_DrawString_EN(10 + margin, 70 + margin, "55 F", &Font32, WHITE, BLACK);
+  Paint_DrawString_EN(10 + margin, 110 + margin, "Humidity: 45%", &Font12, WHITE, BLACK);
+  Paint_DrawString_EN(10 + margin, 130 + margin, "Pressure: 5 mb", &Font12, WHITE, BLACK);
 }
 
 /* The main loop -------------------------------------------------------------*/
