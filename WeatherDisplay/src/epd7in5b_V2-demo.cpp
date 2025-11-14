@@ -2,13 +2,11 @@
 #include "DEV_Config.h"
 #include "EPD.h"
 #include "GUI_Paint.h"
-#include "ImageData.h"
 #include <stdlib.h>
 
 // Private method declarations
 void initializeDisplay();
 void createImageBuffers();
-void showImageFromArray();
 void weatherDisplayDemo();
 
 void drawCurrentConditions(int margin);
@@ -27,10 +25,6 @@ void setup()
 
   initializeDisplay();
   createImageBuffers();
-
-#if 1
-  //showImageFromArray();
-#endif
 
 #if 1
   //drawShapes();
@@ -119,14 +113,6 @@ void createImageBuffers()
   Paint_Clear(WHITE);
   Paint_SelectImage(RYImage);
   Paint_Clear(WHITE);
-}
-
-void showImageFromArray()
-{
-  printf("show image for array\r\n");
-  EPD_7IN5B_V2_Init_Fast();
-  EPD_7IN5B_V2_Display(gImage_7in5_V2_b, gImage_7in5_V2_ry);
-  DEV_Delay_ms(2000);
 }
 
 void drawShapes()
