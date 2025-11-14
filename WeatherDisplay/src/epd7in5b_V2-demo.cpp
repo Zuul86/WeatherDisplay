@@ -14,6 +14,7 @@ void drawShapes();
 void drawLocalHeader(int margin);
 void demonstratePartialRefresh();
 void drawBorders(int margin);
+void partiallyRefreshCurrentConditions();
 void cleanupDisplay();
 
 UBYTE *BlackImage = NULL, *RYImage = NULL;
@@ -32,6 +33,10 @@ void setup()
 
 #if 1
   weatherDisplayDemo();
+#endif
+
+#if 1
+  partiallyRefreshCurrentConditions();
 #endif
 
 #if 1
@@ -206,6 +211,56 @@ void drawCurrentConditions(int margin)
   Paint_DrawString_EN(10 + margin, 70 + margin, "55 F", &Font32, WHITE, BLACK);
   Paint_DrawString_EN(10 + margin, 110 + margin, "Humidity: 45%", &Font12, WHITE, BLACK);
   Paint_DrawString_EN(10 + margin, 130 + margin, "Pressure: 5 mb", &Font12, WHITE, BLACK);
+}
+
+void partiallyRefreshCurrentConditions()
+{
+  printf("Starting partial refresh for current conditions...\r\n");
+  EPD_7IN5B_V2_Init_Part();
+
+  // Define the area for current conditions
+  const int margin = 20;
+  UWORD x_start = 10 + margin;
+  UWORD y_start = 70 + margin;
+  UWORD y_end = 160 + margin;
+
+  // Calculate the end coordinate based on the column layout
+  const UWORD x_end = (EPD_7IN5B_V2_WIDTH / 4) - 1;
+  UWORD area_width = x_end - x_start;
+  UWORD area_height = y_end - y_start;
+
+  // Create a smaller buffer for the partial update area
+  UWORD partial_imagesize = ((area_width % 8 == 0) ? (area_width / 8) : (area_width / 8 + 1)) * area_height;
+  UBYTE *PartialImage;
+  if ((PartialImage = (UBYTE *)malloc(partial_imagesize)) == NULL)
+  {
+    printf("Failed to apply for partial memory...\r\n");
+    return;
+  }
+
+  Paint_NewImage(PartialImage, area_width, area_height, 0, WHITE);
+  Paint_SelectImage(PartialImage);
+  Paint_Clear(WHITE);
+
+  // Simulate data updates
+  int temp = 55;
+  for (int i = 0; i < 5; i++)//this is the cadence of updates
+  {
+    char temp_str[10];
+    sprintf(temp_str, "%d F", temp + i);
+
+    Paint_Clear(WHITE); // Clear the small buffer
+    // Draw into the small buffer at relative coordinates (0,0)
+    Paint_DrawString_EN(0, 0, temp_str, &Font32, WHITE, BLACK);
+    Paint_DrawString_EN(0, 40, "Humidity: 45%", &Font12, WHITE, BLACK);
+    Paint_DrawString_EN(0, 60, "Pressure: 5 mb", &Font12, WHITE, BLACK);
+
+    printf("Updating temperature to %s\r\n", temp_str);
+    EPD_7IN5B_V2_Display_Partial(PartialImage, x_start, y_start, x_end, y_end);
+    DEV_Delay_ms(3000);
+  }
+
+  free(PartialImage);
 }
 
 /* The main loop -------------------------------------------------------------*/
