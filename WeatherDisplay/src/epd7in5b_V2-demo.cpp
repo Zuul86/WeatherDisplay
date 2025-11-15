@@ -1,10 +1,13 @@
 #include <Arduino.h>
+#include <WiFi.h>
+#include "time.h"
 #include "DEV_Config.h"
 #include "EPD.h"
 #include "GUI_Paint.h"
 #include <stdlib.h>
 
 // Private method declarations
+void syncTimeWithNTP();
 void initializeDisplay();
 void createImageBuffers();
 void weatherDisplayDemo();
@@ -20,9 +23,20 @@ void cleanupDisplay();
 UBYTE *BlackImage = NULL, *RYImage = NULL;
 UWORD Imagesize = 0;
 
+// --- WiFi and NTP Configuration ---
+const char* ssid = "";
+const char* password = "";
+
+const char* ntpServer = "pool.ntp.org";
+// Update with your timezone offset in seconds. E.g., PST is UTC-8 -> -8 * 3600 = -28800
+const long gmtOffset_sec = 0; 
+const int daylightOffset_sec = 3600; // For daylight saving
+
 void setup()
 {
   DEV_Module_Init();
+
+  syncTimeWithNTP();
 
   initializeDisplay();
   createImageBuffers();
@@ -44,6 +58,30 @@ void setup()
 #endif
 
   //cleanupDisplay();
+}
+
+void syncTimeWithNTP()
+{
+  printf("Connecting to WiFi: %s\n", ssid);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    printf(".");
+  }
+  printf("\nWiFi connected.\n");
+
+  // Init and get the time
+  printf("Syncing time with NTP server...\n");
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  
+  struct tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    printf("Failed to obtain time\n");
+    return;
+  }
+  printf("Time synced successfully.\n");
+  WiFi.disconnect(true);
+  printf("WiFi disconnected.\n");
 }
 
 void weatherDisplayDemo()
@@ -69,6 +107,22 @@ void drawLocalHeader(int margin)
   // Draw header on black layer
   Paint_SelectImage(BlackImage);
   Paint_DrawString_EN(10 + margin, 10 + margin, "Local Weather", &Font16, WHITE, BLACK);
+
+  // --- Add Date and Time ---
+  struct tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    printf("Failed to obtain time for display\n");
+    return;
+  }
+
+  PAINT_TIME sPaint_time;
+  sPaint_time.Year = timeinfo.tm_year + 1900; // Year is offset from 1900
+  sPaint_time.Month = timeinfo.tm_mon + 1;    // Month is 0-11
+  sPaint_time.Day = timeinfo.tm_mday;
+  sPaint_time.Hour = timeinfo.tm_hour;
+  sPaint_time.Min = timeinfo.tm_min;
+  sPaint_time.Sec = timeinfo.tm_sec;
+  Paint_DrawDateTime(10 + margin, 30 + margin, &sPaint_time, &Font12, WHITE, BLACK);
 }
 
 void drawBorders(int margin)
@@ -184,7 +238,7 @@ void demonstratePartialRefresh()
       }
     }
     Paint_ClearWindows(0, 0, Font20.Width * 7, Font20.Height, WHITE);
-    Paint_DrawTime(0, 0, &sPaint_time, &Font20, WHITE, BLACK);
+    Paint_DrawDateTime(0, 0, &sPaint_time, &Font20, WHITE, BLACK);
     EPD_7IN5B_V2_Display_Partial(BlackImage, 10, 130, 10 + Font20.Width * 7, 130 + Font20.Height);
     DEV_Delay_ms(500);
   }
@@ -225,9 +279,9 @@ void partiallyRefreshCurrentConditions()
   UWORD y_end = 160 + margin;
 
   // Calculate the end coordinate based on the column layout
-  const UWORD x_end = (EPD_7IN5B_V2_WIDTH / 4) - 1;
+  const UWORD x_end = (EPD_7IN5B_V2_WIDTH / 4);
   UWORD area_width = x_end - x_start;
-  UWORD area_height = y_end - y_start;
+  const UWORD area_height = y_end - y_start;
 
   // Create a smaller buffer for the partial update area
   UWORD partial_imagesize = ((area_width % 8 == 0) ? (area_width / 8) : (area_width / 8 + 1)) * area_height;
