@@ -5,6 +5,7 @@
 #include "EPD.h"
 #include "GUI_Paint.h"
 #include <stdlib.h>
+#include "config.h"
 
 // Private method declarations
 void syncTimeWithNTP();
@@ -23,18 +24,15 @@ void cleanupDisplay();
 UBYTE *BlackImage = NULL, *RYImage = NULL;
 UWORD Imagesize = 0;
 
-// --- WiFi and NTP Configuration ---
-const char* ssid = "";
-const char* password = "";
-
 const char* ntpServer = "pool.ntp.org";
-// Update with your timezone offset in seconds. E.g., PST is UTC-8 -> -8 * 3600 = -28800
-const long gmtOffset_sec = 0; 
 const int daylightOffset_sec = 3600; // For daylight saving
 
 void setup()
 {
   DEV_Module_Init();
+
+  // Configure BUSY pin with a pull-up resistor
+  pinMode(EPD_BUSY_PIN, INPUT_PULLUP);
 
   syncTimeWithNTP();
 

@@ -71,7 +71,7 @@ static void EPD_7IN5B_V2_SendData(UBYTE Data)
 }
 
 /******************************************************************************
-function :	Wait until the busy_pin goes LOW
+function :	Wait until the busy_pin goes HIGH
 parameter:
 ******************************************************************************/
 void EPD_7IN5B_V2_WaitUntilIdle(void)
