@@ -32,6 +32,8 @@
 void GPIO_Config(void)
 {
     pinMode(EPD_BUSY_PIN,  INPUT);
+      // Configure BUSY pin with a pull-up resistor
+    pinMode(EPD_BUSY_PIN, INPUT_PULLUP);
     pinMode(EPD_RST_PIN , OUTPUT);
     pinMode(EPD_DC_PIN  , OUTPUT);
     

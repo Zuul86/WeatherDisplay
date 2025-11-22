@@ -31,8 +31,6 @@ void setup()
 {
   DEV_Module_Init();
 
-  // Configure BUSY pin with a pull-up resistor
-  pinMode(EPD_BUSY_PIN, INPUT_PULLUP);
 
   syncTimeWithNTP();
 
@@ -48,7 +46,7 @@ void setup()
 #endif
 
 #if 1
-  partiallyRefreshCurrentConditions();
+  //partiallyRefreshCurrentConditions();
 #endif
 
 #if 1
