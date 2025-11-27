@@ -142,7 +142,8 @@ void drawBorders(int margin)
   int forecast_area_width = (EPD_7IN5B_V2_WIDTH - margin) - forecast_area_x_start;
   int daily_forecast_width = forecast_area_width / 5;
 
-  const char* days[] = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
+  const char* days_of_week[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+  int today_wday = initialTimeInfo.tm_wday; // 0=Sun, 1=Mon, ...
 
   for (int i = 0; i < 5; i++)
   {
@@ -153,7 +154,8 @@ void drawBorders(int margin)
     Paint_DrawRectangle(x1, y1, x2, y2, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
 
     // --- Draw Day of the Week ---
-    const char* day = days[i];
+    int day_index = (today_wday + i) % 7;
+    const char* day = days_of_week[day_index];
     int string_width = strlen(day) * Font16.Width;
     int x_text = x1 + (daily_forecast_width - string_width) / 2;
     int y_text = margin + 5; // 5 pixels padding from the top
