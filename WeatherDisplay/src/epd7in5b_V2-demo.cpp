@@ -13,12 +13,9 @@ void initializeDisplay();
 void createImageBuffers();
 void weatherDisplayDemo();
 
-void drawCurrentConditions(int margin);
-void drawShapes();
+void drawCurrentConditions(int margin, const char* temp, const char* humidity, const char* pressure);
 void drawLocalHeader(int margin);
-void demonstratePartialRefresh();
 void drawBorders(int margin);
-void partiallyRefreshCurrentConditions();
 void cleanupDisplay();
 
 UBYTE *BlackImage = NULL, *RYImage = NULL;
@@ -30,29 +27,12 @@ const int daylightOffset_sec = 3600; // For daylight saving
 void setup()
 {
   DEV_Module_Init();
-
-
   syncTimeWithNTP();
 
   initializeDisplay();
   createImageBuffers();
 
-#if 1
-  //drawShapes();
-#endif
-
-#if 1
   weatherDisplayDemo();
-#endif
-
-#if 1
-  //partiallyRefreshCurrentConditions();
-#endif
-
-#if 1
-  //demonstratePartialRefresh();
-#endif
-
   //cleanupDisplay();
 }
 
@@ -83,26 +63,41 @@ void syncTimeWithNTP()
 void weatherDisplayDemo()
 {
   const int margin = 20;
-  EPD_7IN5B_V2_Init();
-
-  Paint_Clear(WHITE);
-
+  Paint_SelectImage(BlackImage);
   drawBorders(margin);
   drawLocalHeader(margin);
-  drawCurrentConditions(margin);
+  EPD_7IN5B_V2_Display_Partial(BlackImage, 0, 0, EPD_7IN5B_V2_WIDTH, EPD_7IN5B_V2_HEIGHT);
+  DEV_Delay_ms(5000);
 
+  int temp = 55;
+  for (int i = 0; i < 5; i++)//this is the cadence of updates
+  {
+    char temp_str[10];
+    sprintf(temp_str, "%d F", temp + i);    
+    
+    // Define the specific area for the temperature string to be updated
+    UWORD x_start = 10 + margin;
+    UWORD y_start = 70 + margin;
+    UWORD x_end = x_start + (Font32.Width * 4); // Approx. width for "XX F"
+    UWORD y_end = y_start + Font32.Height;
+    
+    // Clear just the temperature area and redraw the new value
+    Paint_ClearWindows(x_start, y_start, x_end, y_end, WHITE);
+    Paint_DrawString_EN(x_start, y_start, temp_str, &Font32, BLACK, WHITE);
+    
+    printf("Updating temperature to %s\r\n", temp_str);
+    EPD_7IN5B_V2_Display_Partial(BlackImage, 0, 0, EPD_7IN5B_V2_WIDTH, EPD_7IN5B_V2_HEIGHT);
+
+    DEV_Delay_ms(5000);
+  }
   printf("EPD_Display\r\n");
-  EPD_7IN5B_V2_Display(BlackImage, RYImage);
+  
   DEV_Delay_ms(2000);
 }
 
 void drawLocalHeader(int margin)
 {
-  const int header_height = 50;
-
-  // Draw header on black layer
-  Paint_SelectImage(BlackImage);
-  Paint_DrawString_EN(10 + margin, 10 + margin, "Local Weather", &Font16, WHITE, BLACK);
+  Paint_DrawString_EN(10 + margin, 10 + margin, "Local Weather", &Font16, BLACK, WHITE);
 
   // --- Add Date and Time ---
   struct tm timeinfo;
@@ -118,16 +113,16 @@ void drawLocalHeader(int margin)
   sPaint_time.Hour = timeinfo.tm_hour;
   sPaint_time.Min = timeinfo.tm_min;
   sPaint_time.Sec = timeinfo.tm_sec;
-  Paint_DrawDateTime(10 + margin, 30 + margin, &sPaint_time, &Font12, WHITE, BLACK);
+  Paint_DrawDateTime(10 + margin, 30 + margin, &sPaint_time, &Font12, BLACK, WHITE);
+
+  // Draw static parts of current conditions once
+  drawCurrentConditions(margin, " ", "Humidity: 45%", "Pressure: 5 mb");
 }
 
 void drawBorders(int margin)
 {
   const int split_point = EPD_7IN5B_V2_WIDTH / 4;
 
-  // Draw both rectangles on the black layer
-  Paint_SelectImage(BlackImage);
-  
   Paint_DrawRectangle(margin, margin, split_point, EPD_7IN5B_V2_HEIGHT - margin,
                       BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
   Paint_DrawRectangle(split_point + margin, margin, EPD_7IN5B_V2_WIDTH - margin, EPD_7IN5B_V2_HEIGHT - margin,
@@ -135,13 +130,15 @@ void drawBorders(int margin)
 
 }
 
-
 void initializeDisplay()
 {
   printf("e-Paper Init and Clear...\r\n");
-  EPD_7IN5B_V2_Init();
+
+  EPD_7IN5B_V2_Init_Part();
   EPD_7IN5B_V2_Clear();
-  DEV_Delay_ms(500);
+  EPD_7IN5B_V2_Display_Base_color(WHITE);
+
+  DEV_Delay_ms(1000);
 }
 
 void createImageBuffers()
@@ -170,76 +167,6 @@ void createImageBuffers()
   Paint_Clear(WHITE);
 }
 
-void drawShapes()
-{
-  EPD_7IN5B_V2_Init();
-
-  // Draw black layer
-  Paint_SelectImage(BlackImage);
-  Paint_Clear(WHITE);
-  Paint_DrawPoint(10, 80, BLACK, DOT_PIXEL_1X1, DOT_STYLE_DFT);
-  Paint_DrawPoint(10, 90, BLACK, DOT_PIXEL_2X2, DOT_STYLE_DFT);
-  Paint_DrawPoint(10, 100, BLACK, DOT_PIXEL_3X3, DOT_STYLE_DFT);
-  Paint_DrawPoint(10, 110, BLACK, DOT_PIXEL_3X3, DOT_STYLE_DFT);
-  Paint_DrawLine(20, 70, 70, 120, BLACK, DOT_PIXEL_1X1, LINE_STYLE_SOLID);
-  Paint_DrawLine(70, 70, 20, 120, BLACK, DOT_PIXEL_1X1, LINE_STYLE_SOLID);
-  Paint_DrawRectangle(20, 70, 70, 120, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
-  Paint_DrawRectangle(80, 70, 130, 120, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-  Paint_DrawString_EN(10, 0, "waveshare", &Font16, BLACK, WHITE);
-  Paint_DrawNum(10, 50, 987654321, &Font16, WHITE, BLACK);
-
-  // Draw red layer
-  Paint_SelectImage(RYImage);
-  Paint_Clear(WHITE);
-  Paint_DrawCircle(160, 95, 20, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
-  Paint_DrawCircle(210, 95, 20, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-  Paint_DrawStar(160, 95, 20, BLACK);
-  Paint_DrawLine(85, 95, 125, 95, BLACK, DOT_PIXEL_1X1, LINE_STYLE_DOTTED);
-  Paint_DrawLine(105, 75, 105, 115, BLACK, DOT_PIXEL_1X1, LINE_STYLE_DOTTED);
-  Paint_DrawString_EN(10, 20, "hello world", &Font12, WHITE, BLACK);
-  Paint_DrawNum(10, 33, 123456789, &Font12, BLACK, WHITE);
-
-  printf("EPD_Display\r\n");
-  EPD_7IN5B_V2_Display(BlackImage, RYImage);
-  DEV_Delay_ms(2000);
-}
-
-void demonstratePartialRefresh()
-{
-  EPD_7IN5B_V2_Init_Part();
-  EPD_7IN5B_V2_Display_Base_color(WHITE);
-  Paint_NewImage(BlackImage, Font20.Width * 7, Font20.Height, 0, WHITE);
-  Debug("Partial refresh\r\n");
-  Paint_SelectImage(BlackImage);
-  Paint_Clear(WHITE);
-
-  PAINT_TIME sPaint_time = {12, 34, 56};
-  for (UBYTE num = 10; num > 0; num--)
-  {
-    sPaint_time.Sec = sPaint_time.Sec + 1;
-    if (sPaint_time.Sec == 60)
-    {
-      sPaint_time.Min = sPaint_time.Min + 1;
-      sPaint_time.Sec = 0;
-      if (sPaint_time.Min == 60)
-      {
-        sPaint_time.Hour = sPaint_time.Hour + 1;
-        sPaint_time.Min = 0;
-        if (sPaint_time.Hour == 24)
-        {
-          sPaint_time.Hour = 0;
-          sPaint_time.Min = 0;
-          sPaint_time.Sec = 0;
-        }
-      }
-    }
-    Paint_ClearWindows(0, 0, Font20.Width * 7, Font20.Height, WHITE);
-    Paint_DrawDateTime(0, 0, &sPaint_time, &Font20, WHITE, BLACK);
-    EPD_7IN5B_V2_Display_Partial(BlackImage, 10, 130, 10 + Font20.Width * 7, 130 + Font20.Height);
-    DEV_Delay_ms(500);
-  }
-}
-
 void cleanupDisplay()
 {
   printf("Clear...\r\n");
@@ -254,63 +181,11 @@ void cleanupDisplay()
   RYImage = NULL;
 }
 
-void drawCurrentConditions(int margin)
+void drawCurrentConditions(int margin, const char* temp, const char* humidity, const char* pressure)
 {
-  // Draw current conditions on black layer
-  Paint_SelectImage(BlackImage);
-  Paint_DrawString_EN(10 + margin, 70 + margin, "55 F", &Font32, WHITE, BLACK);
-  Paint_DrawString_EN(10 + margin, 110 + margin, "Humidity: 45%", &Font12, WHITE, BLACK);
-  Paint_DrawString_EN(10 + margin, 130 + margin, "Pressure: 5 mb", &Font12, WHITE, BLACK);
-}
-
-void partiallyRefreshCurrentConditions()
-{
-  printf("Starting partial refresh for current conditions...\r\n");
-  EPD_7IN5B_V2_Init_Part();
-
-  // Define the area for current conditions
-  const int margin = 20;
-  UWORD x_start = 10 + margin;
-  UWORD y_start = 70 + margin;
-  UWORD y_end = 160 + margin;
-
-  // Calculate the end coordinate based on the column layout
-  const UWORD x_end = (EPD_7IN5B_V2_WIDTH / 4);
-  UWORD area_width = x_end - x_start;
-  const UWORD area_height = y_end - y_start;
-
-  // Create a smaller buffer for the partial update area
-  UWORD partial_imagesize = ((area_width % 8 == 0) ? (area_width / 8) : (area_width / 8 + 1)) * area_height;
-  UBYTE *PartialImage;
-  if ((PartialImage = (UBYTE *)malloc(partial_imagesize)) == NULL)
-  {
-    printf("Failed to apply for partial memory...\r\n");
-    return;
-  }
-
-  Paint_NewImage(PartialImage, area_width, area_height, 0, WHITE);
-  Paint_SelectImage(PartialImage);
-  Paint_Clear(WHITE);
-
-  // Simulate data updates
-  int temp = 55;
-  for (int i = 0; i < 5; i++)//this is the cadence of updates
-  {
-    char temp_str[10];
-    sprintf(temp_str, "%d F", temp + i);
-
-    Paint_Clear(WHITE); // Clear the small buffer
-    // Draw into the small buffer at relative coordinates (0,0)
-    Paint_DrawString_EN(0, 0, temp_str, &Font32, WHITE, BLACK);
-    Paint_DrawString_EN(0, 40, "Humidity: 45%", &Font12, WHITE, BLACK);
-    Paint_DrawString_EN(0, 60, "Pressure: 5 mb", &Font12, WHITE, BLACK);
-
-    printf("Updating temperature to %s\r\n", temp_str);
-    EPD_7IN5B_V2_Display_Partial(PartialImage, x_start, y_start, x_end, y_end);
-    DEV_Delay_ms(3000);
-  }
-
-  free(PartialImage);
+  Paint_DrawString_EN(10 + margin, 70 + margin, temp, &Font32, BLACK, WHITE);
+  Paint_DrawString_EN(10 + margin, 110 + margin, humidity, &Font12, BLACK, WHITE);
+  Paint_DrawString_EN(10 + margin, 130 + margin, pressure, &Font12, BLACK, WHITE);
 }
 
 /* The main loop -------------------------------------------------------------*/
