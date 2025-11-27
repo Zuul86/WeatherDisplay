@@ -23,6 +23,7 @@ UWORD Imagesize = 0;
 
 const char* ntpServer = "pool.ntp.org";
 const int daylightOffset_sec = 3600; // For daylight saving
+struct tm initialTimeInfo;
 
 void setup()
 {
@@ -50,8 +51,7 @@ void syncTimeWithNTP()
   printf("Syncing time with NTP server...\n");
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   
-  struct tm timeinfo;
-  if(!getLocalTime(&timeinfo)){
+  if(!getLocalTime(&initialTimeInfo)){
     printf("Failed to obtain time\n");
     return;
   }
@@ -116,19 +116,13 @@ void drawLocalHeader(int margin)
   Paint_DrawString_EN(10 + margin, 10 + margin, "Local Weather", &Font16, BLACK, WHITE);
 
   // --- Add Date and Time ---
-  struct tm timeinfo;
-  if(!getLocalTime(&timeinfo)){
-    printf("Failed to obtain time for display\n");
-    return;
-  }
-
   PAINT_TIME sPaint_time;
-  sPaint_time.Year = timeinfo.tm_year + 1900; // Year is offset from 1900
-  sPaint_time.Month = timeinfo.tm_mon + 1;    // Month is 0-11
-  sPaint_time.Day = timeinfo.tm_mday;
-  sPaint_time.Hour = timeinfo.tm_hour;
-  sPaint_time.Min = timeinfo.tm_min;
-  sPaint_time.Sec = timeinfo.tm_sec;
+  sPaint_time.Year = initialTimeInfo.tm_year + 1900; // Year is offset from 1900
+  sPaint_time.Month = initialTimeInfo.tm_mon + 1;    // Month is 0-11
+  sPaint_time.Day = initialTimeInfo.tm_mday;
+  sPaint_time.Hour = initialTimeInfo.tm_hour;
+  sPaint_time.Min = initialTimeInfo.tm_min;
+  sPaint_time.Sec = initialTimeInfo.tm_sec;
   Paint_DrawDateTime(10 + margin, 30 + margin, &sPaint_time, &Font12, BLACK, WHITE);
 
   // Draw static parts of current conditions once
