@@ -70,10 +70,18 @@ void weatherDisplayDemo()
   DEV_Delay_ms(5000);
 
   int temp = 55;
+  int humidity = 45;
+  int pressure = 5;
   for (int i = 0; i < 5; i++)//this is the cadence of updates
   {
     char temp_str[10];
-    sprintf(temp_str, "%d F", temp + i);    
+    sprintf(temp_str, "%d F", temp + i);
+
+    char humidity_str[20];
+    sprintf(humidity_str, "Humidity: %d%%", humidity + i);
+
+    char pressure_str[20];
+    sprintf(pressure_str, "Pressure: %d mb", pressure + i);
     
     // Define the specific area for the temperature string to be updated
     UWORD x_start = 10 + margin;
@@ -85,7 +93,15 @@ void weatherDisplayDemo()
     Paint_ClearWindows(x_start, y_start, x_end, y_end, WHITE);
     Paint_DrawString_EN(x_start, y_start, temp_str, &Font32, BLACK, WHITE);
     
-    printf("Updating temperature to %s\r\n", temp_str);
+    // humidity
+    Paint_ClearWindows(10 + margin, 110 + margin, 10 + margin + (Font12.Width * 15), 110 + margin + Font12.Height, WHITE);
+    Paint_DrawString_EN(10 + margin, 110 + margin, humidity_str, &Font12, BLACK, WHITE);
+
+    // pressure
+    Paint_ClearWindows(10 + margin, 130 + margin, 10 + margin + (Font12.Width * 15), 130 + margin + Font12.Height, WHITE);
+    Paint_DrawString_EN(10 + margin, 130 + margin, pressure_str, &Font12, BLACK, WHITE);
+
+    printf("Updating to temp: %s, humidity: %s, pressure: %s\r\n", temp_str, humidity_str, pressure_str);
     EPD_7IN5B_V2_Display_Partial(BlackImage, 0, 0, EPD_7IN5B_V2_WIDTH, EPD_7IN5B_V2_HEIGHT);
 
     DEV_Delay_ms(5000);
@@ -116,7 +132,7 @@ void drawLocalHeader(int margin)
   Paint_DrawDateTime(10 + margin, 30 + margin, &sPaint_time, &Font12, BLACK, WHITE);
 
   // Draw static parts of current conditions once
-  drawCurrentConditions(margin, " ", "Humidity: 45%", "Pressure: 5 mb");
+  drawCurrentConditions(margin, " ", " ", " ");
 }
 
 void drawBorders(int margin)
